@@ -47,10 +47,18 @@ export function Modal({ isOpen, onClose, children, className }: ModalProps) {
     >
       <div
         className={cn(
-          'bg-white rounded-lg shadow-lg flex flex-col max-h-[85vh] w-full',
+          'bg-white rounded-lg shadow-lg !max-h-[800px] !max-w-[90vw] !grid !grid-rows-[auto_1fr_auto] !p-[6px]',
           className
         )}
-        style={{ animation: 'slideIn 0.2s ease-out' }}
+        style={{
+          animation: 'slideIn 0.2s ease-out',
+          maxHeight: '800px',
+          maxWidth: 'min(800px, 90vw)',
+          display: 'grid',
+          gridTemplateRows: 'auto 1fr auto',
+          minWidth: 'auto',
+          minHeight: 'auto',
+        }}
       >
         {children}
       </div>
@@ -98,7 +106,17 @@ interface ModalBodyProps {
 
 export function ModalBody({ children, className }: ModalBodyProps) {
   return (
-    <div className={cn('overflow-y-auto flex-grow px-6 py-0 min-h-0', className)}>
+    <div 
+      className={cn('overflow-y-auto px-6 py-0 min-h-0 flex-1', className)}
+      style={{
+        minHeight: 0,
+        maxHeight: '100%',
+        overflow: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        flex: '1 1 auto'
+      }}
+    >
       {children}
     </div>
   );

@@ -165,13 +165,14 @@ export function AddArchiveModal({ isOpen, onClose, onAdd }: AddArchiveModalProps
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} className="max-w-2xl">
+    <Modal isOpen={isOpen} onClose={onClose}>
       <ModalHeader onClose={onClose}>
         <ModalTitle>Add New Archive Item</ModalTitle>
       </ModalHeader>
 
-      <ModalBody>
-        <form id="archive-form" onSubmit={handleSubmit} className="space-y-4 py-6">
+      <ModalBody className="overflow-hidden p-0 min-h-0">
+        <div className="overflow-y-auto w-full px-6 py-6" style={{ minHeight: 0, maxHeight: '100%' }}>
+          <form id="archive-form" onSubmit={handleSubmit} className="space-y-4">
           {/* File Upload */}
           <div>
             <Label>Upload Files *</Label>
@@ -301,7 +302,8 @@ export function AddArchiveModal({ isOpen, onClose, onAdd }: AddArchiveModalProps
               rows={4}
             />
           </div>
-        </form>
+          </form>
+        </div>
       </ModalBody>
 
       <ModalFooter>

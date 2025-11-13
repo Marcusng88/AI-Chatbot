@@ -80,8 +80,8 @@ export function ArchiveDetailModal({
   // Keep Modal mounted for exit animations, but render fallback content while waiting for item
   if (!item || !editedItem) {
     return (
-      <Modal isOpen={isOpen} onClose={onClose} className="max-w-4xl">
-        <ModalHeader onClose={onClose}>
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalHeader onClose={onClose} className="flex-shrink-0">
           <ModalTitle>Loading...</ModalTitle>
         </ModalHeader>
       </Modal>
@@ -232,7 +232,7 @@ export function ArchiveDetailModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} className="max-w-4xl">
+    <Modal isOpen={isOpen} onClose={onClose}>
       <ModalHeader onClose={onClose}>
         <div className="flex items-start justify-between pr-8">
           <div className="flex-1">
@@ -299,318 +299,320 @@ export function ArchiveDetailModal({
         </div>
       </ModalHeader>
 
-      <ModalBody>
-        <div className="py-6 space-y-6">
-            {/* Preview/Thumbnail - show as dropdown when not editing */}
-            <div>
-              <h3 className="text-sm font-medium text-stone-700 mb-2">Preview</h3>
-              {isEditMode ? (
-                <>
-                  {editedItem.thumbnail ? (
-                    <div className="relative rounded-lg overflow-hidden border border-stone-200">
-                      <ImageWithFallback
-                        src={editedItem.thumbnail}
-                        alt={editedItem.title}
-                        className="w-full max-h-96 object-contain bg-stone-50"
-                      />
-                    </div>
-                  ) : (
-                    <div className={`w-full h-64 rounded-lg flex items-center justify-center ${getTypeColor(editedItem.type)}`}>
-                      <Icon className="w-16 h-16" />
-                    </div>
-                  )}
-                  <Input
-                    value={editedItem.thumbnail || ''}
-                    onChange={(e) => setEditedItem({ ...editedItem, thumbnail: e.target.value })}
-                    placeholder="Thumbnail URL"
-                    className="mt-2"
-                  />
-                </>
-              ) : (
-                <details className="bg-stone-50 rounded-lg overflow-hidden border border-stone-200">
-                  <summary className="flex items-center justify-between cursor-pointer p-3 text-stone-700 list-none">
-                    <span className="text-sm">View preview image</span>
-                    <ChevronDown className="w-4 h-4" />
-                  </summary>
-                  <div className="border-t border-stone-200">
+      <ModalBody className="overflow-hidden p-0 min-h-0">
+        <div className="overflow-y-auto w-full px-6 py-4" style={{ minHeight: 0, maxHeight: '100%' }}>
+            <div className="py-2 space-y-6">
+              {/* Preview/Thumbnail - show as dropdown when not editing */}
+              <div>
+                <h3 className="text-sm font-medium text-stone-700 mb-2">Preview</h3>
+                {isEditMode ? (
+                  <>
                     {editedItem.thumbnail ? (
-                      <div className="relative">
+                      <div className="relative rounded-lg overflow-hidden border border-stone-200">
                         <ImageWithFallback
                           src={editedItem.thumbnail}
                           alt={editedItem.title}
-                          className="w-full max-h-96 object-contain bg-stone-50"
+                          className="w-full max-h-48 object-contain bg-stone-50"
                         />
-                        {(() => {
-                          const fileUrl = normalizeFileUri(editedItem.fileUrl);
-                          const isGenAIUrl = fileUrl && fileUrl.includes('generativelanguage.googleapis.com');
-                          
-                          // Only show external link if it's not a GenAI URL
-                          if (editedItem.fileUrl && !isGenAIUrl) {
-                            return (
-                              <a
-                                href={fileUrl || '#'}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="absolute bottom-4 right-4 bg-white/90 hover:bg-white p-2 rounded-lg shadow-lg transition-all"
-                                onClick={(e) => {
-                                  if (!fileUrl) {
-                                    e.preventDefault();
-                                    toast.error('File URL is not available');
-                                  }
-                                }}
-                              >
-                                <ExternalLink className="w-4 h-4 text-stone-700" />
-                              </a>
-                            );
-                          }
-                          return null;
-                        })()}
                       </div>
                     ) : (
-                      <div className={`w-full h-64 flex items-center justify-center ${getTypeColor(editedItem.type)}`}>
-                        <Icon className="w-16 h-16" />
+                      <div className={`w-full h-48 rounded-lg flex items-center justify-center ${getTypeColor(editedItem.type)}`}>
+                        <Icon className="w-12 h-12" />
                       </div>
                     )}
-                  </div>
-                </details>
-              )}
-            </div>
-
-            {/* Description */}
-            <div>
-              <h3 className="text-sm font-medium text-stone-700 mb-2">Description</h3>
-              {isEditMode ? (
-                <Textarea
-                  value={editedItem.description}
-                  onChange={(e) => setEditedItem({ ...editedItem, description: e.target.value })}
-                  placeholder="Enter description"
-                  rows={4}
-                  className="resize-none"
-                />
-              ) : (
-                <div className="space-y-2">
-                  <div
-                    className={`text-stone-600 whitespace-pre-wrap break-words max-w-full overflow-hidden transition-all ${
-                      isDescriptionExpanded ? 'max-h-none' : 'max-h-32'
-                    }`}
-                  >
-                    {editedItem.description}
-                  </div>
-                  {editedItem.description.length > 200 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                      className="text-forest hover:text-forest/80 p-0 h-auto font-normal flex items-center gap-1"
-                    >
-                      {isDescriptionExpanded ? (
-                        <>
-                          Show Less <ChevronUp className="w-3 h-3" />
-                        </>
+                    <Input
+                      value={editedItem.thumbnail || ''}
+                      onChange={(e) => setEditedItem({ ...editedItem, thumbnail: e.target.value })}
+                      placeholder="Thumbnail URL"
+                      className="mt-2"
+                    />
+                  </>
+                ) : (
+                  <details className="bg-stone-50 rounded-lg overflow-hidden border border-stone-200">
+                    <summary className="flex items-center justify-between cursor-pointer p-3 text-stone-700 list-none">
+                      <span className="text-sm">View preview image</span>
+                      <ChevronDown className="w-4 h-4" />
+                    </summary>
+                    <div className="border-t border-stone-200">
+                      {editedItem.thumbnail ? (
+                        <div className="relative">
+                          <ImageWithFallback
+                            src={editedItem.thumbnail}
+                            alt={editedItem.title}
+                            className="w-full max-h-48 object-contain bg-stone-50"
+                          />
+                          {(() => {
+                            const fileUrl = normalizeFileUri(editedItem.fileUrl);
+                            const isGenAIUrl = fileUrl && fileUrl.includes('generativelanguage.googleapis.com');
+                            
+                            // Only show external link if it's not a GenAI URL
+                            if (editedItem.fileUrl && !isGenAIUrl) {
+                              return (
+                                <a
+                                  href={fileUrl || '#'}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="absolute bottom-4 right-4 bg-white/90 hover:bg-white p-2 rounded-lg shadow-lg transition-all"
+                                  onClick={(e) => {
+                                    if (!fileUrl) {
+                                      e.preventDefault();
+                                      toast.error('File URL is not available');
+                                    }
+                                  }}
+                                >
+                                  <ExternalLink className="w-4 h-4 text-stone-700" />
+                                </a>
+                              );
+                            }
+                            return null;
+                          })()}
+                        </div>
                       ) : (
-                        <>
-                          Show More <ChevronDown className="w-3 h-3" />
-                        </>
+                        <div className={`w-full h-48 flex items-center justify-center ${getTypeColor(editedItem.type)}`}>
+                          <Icon className="w-12 h-12" />
+                        </div>
                       )}
-                    </Button>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Type */}
-            {isEditMode && (
-              <div>
-                <h3 className="text-sm font-medium text-stone-700 mb-2">Type</h3>
-                <Select
-                  value={editedItem.type}
-                  onValueChange={(value: 'image' | 'video' | 'document' | 'audio') =>
-                    setEditedItem({ ...editedItem, type: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="image">
-                      <div className="flex items-center gap-2">
-                        <ImageIcon className="w-4 h-4" />
-                        Image
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="video">
-                      <div className="flex items-center gap-2">
-                        <Video className="w-4 h-4" />
-                        Video
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="audio">
-                      <div className="flex items-center gap-2">
-                        <Music className="w-4 h-4" />
-                        Audio
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="document">
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-4 h-4" />
-                        Document
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {/* File URL */}
-            <div>
-              <h3 className="text-sm font-medium text-stone-700 mb-2">File URL</h3>
-              {isEditMode ? (
-                <Input
-                  value={editedItem.fileUrl}
-                  onChange={(e) => setEditedItem({ ...editedItem, fileUrl: e.target.value })}
-                  placeholder="https://example.com/file.pdf"
-                />
-              ) : (
-                <>
-                  {(() => {
-                    const url = normalizeFileUri(editedItem.fileUrl) || editedItem.fileUrl;
-                    const isGenAIUrl = url && url.includes('generativelanguage.googleapis.com');
-                    
-                    if (isGenAIUrl) {
-                      return (
-                        <div className="flex items-start gap-2">
-                          <p className="text-sm text-stone-600 break-all flex-1 font-mono">
-                            {url}
-                          </p>
-                          <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-200 shrink-0">
-                            API Access Only
-                          </span>
-                        </div>
-                      );
-                    }
-                    
-                    return (
-                      <a
-                        href={url || '#'}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-forest hover:underline flex items-center gap-1 break-all"
-                        onClick={(e) => {
-                          if (!url) {
-                            e.preventDefault();
-                            toast.error('File URL is not available');
-                          }
-                        }}
-                      >
-                        {url}
-                        <ExternalLink className="w-3 h-3 shrink-0" />
-                      </a>
-                    );
-                  })()}
-                </>
-              )}
-            </div>
-
-            {/* Additional File URIs */}
-            {editedItem.file_uris && editedItem.file_uris.length > 0 && (
-              <div>
-                <h3 className="text-sm font-medium text-stone-700 mb-2">
-                  Additional Files ({editedItem.file_uris.length})
-                </h3>
-                <div className="space-y-2">
-                  {editedItem.file_uris.map((uri, index) => {
-                    const normalizedUrl = normalizeFileUri(uri);
-                    const isGenAIUrl = normalizedUrl && normalizedUrl.includes('generativelanguage.googleapis.com');
-                    
-                    if (isGenAIUrl) {
-                      return (
-                        <div key={index} className="flex items-center gap-2 text-sm">
-                          <FileText className="w-3 h-3 shrink-0 text-stone-400" />
-                          <span className="text-stone-600">File {index + 1}</span>
-                          <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-200">
-                            API Access Only
-                          </span>
-                        </div>
-                      );
-                    }
-                    
-                    return (
-                      <a
-                        key={index}
-                        href={normalizedUrl || '#'}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-forest hover:underline flex items-center gap-1 break-all"
-                        onClick={(e) => {
-                          if (!normalizedUrl) {
-                            e.preventDefault();
-                            toast.error('File URL is not available');
-                          }
-                        }}
-                      >
-                        <FileText className="w-3 h-3 shrink-0" />
-                        {normalizedUrl ? `File ${index + 1}` : `File ${index + 1} (unavailable)`}
-                        <ExternalLink className="w-3 h-3 shrink-0" />
-                      </a>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Tags */}
-            <div>
-              <h3 className="text-sm font-medium text-stone-700 mb-2 flex items-center gap-1">
-                <Tag className="w-4 h-4" />
-                Tags
-              </h3>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {editedItem.tags.map((tag) => (
-                  <Badge key={tag} variant="outline" className="text-sm">
-                    {tag}
-                    {isEditMode && (
-                      <button
-                        onClick={() => handleRemoveTag(tag)}
-                        className="ml-1 hover:text-red-600"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    )}
-                  </Badge>
-                ))}
-                {editedItem.tags.length === 0 && !isEditMode && (
-                  <span className="text-sm text-stone-400">No tags</span>
+                    </div>
+                  </details>
                 )}
               </div>
-              {isEditMode && (
-                <div className="flex gap-2">
-                  <Input
-                    value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
-                    placeholder="Add a tag"
-                    className="flex-1"
+
+              {/* Description */}
+              <div>
+                <h3 className="text-sm font-medium text-stone-700 mb-2">Description</h3>
+                {isEditMode ? (
+                  <Textarea
+                    value={editedItem.description}
+                    onChange={(e) => setEditedItem({ ...editedItem, description: e.target.value })}
+                    placeholder="Enter description"
+                    rows={4}
+                    className="resize-none"
                   />
-                  <Button onClick={handleAddTag} variant="outline" size="sm">
-                    Add
-                  </Button>
+                ) : (
+                  <div className="space-y-2">
+                    <div
+                      className={`text-stone-600 whitespace-pre-wrap break-words max-w-full overflow-hidden transition-all ${
+                        isDescriptionExpanded ? 'max-h-none' : 'max-h-32'
+                      }`}
+                    >
+                      {editedItem.description}
+                    </div>
+                    {editedItem.description.length > 200 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                        className="text-forest hover:text-forest/80 p-0 h-auto font-normal flex items-center gap-1"
+                      >
+                        {isDescriptionExpanded ? (
+                          <>
+                            Show Less <ChevronUp className="w-3 h-3" />
+                          </>
+                        ) : (
+                          <>
+                            Show More <ChevronDown className="w-3 h-3" />
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Type */}
+              {isEditMode && (
+                <div>
+                  <h3 className="text-sm font-medium text-stone-700 mb-2">Type</h3>
+                  <Select
+                    value={editedItem.type}
+                    onValueChange={(value: 'image' | 'video' | 'document' | 'audio') =>
+                      setEditedItem({ ...editedItem, type: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="image">
+                        <div className="flex items-center gap-2">
+                          <ImageIcon className="w-4 h-4" />
+                          Image
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="video">
+                        <div className="flex items-center gap-2">
+                          <Video className="w-4 h-4" />
+                          Video
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="audio">
+                        <div className="flex items-center gap-2">
+                          <Music className="w-4 h-4" />
+                          Audio
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="document">
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-4 h-4" />
+                          Document
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               )}
-            </div>
 
-            {/* Metadata */}
-            <div className="pt-4 border-t border-stone-200">
-              <h3 className="text-sm font-medium text-stone-700 mb-2">Metadata</h3>
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              {/* File URL */}
+              <div>
+                <h3 className="text-sm font-medium text-stone-700 mb-2">File URL</h3>
+                {isEditMode ? (
+                  <Input
+                    value={editedItem.fileUrl}
+                    onChange={(e) => setEditedItem({ ...editedItem, fileUrl: e.target.value })}
+                    placeholder="https://example.com/file.pdf"
+                  />
+                ) : (
+                  <>
+                    {(() => {
+                      const url = normalizeFileUri(editedItem.fileUrl) || editedItem.fileUrl;
+                      const isGenAIUrl = url && url.includes('generativelanguage.googleapis.com');
+                      
+                      if (isGenAIUrl) {
+                        return (
+                          <div className="flex items-start gap-2">
+                            <p className="text-sm text-stone-600 break-all flex-1 font-mono">
+                              {url}
+                            </p>
+                            <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-200 shrink-0">
+                              API Access Only
+                            </span>
+                          </div>
+                        );
+                      }
+                      
+                      return (
+                        <a
+                          href={url || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-forest hover:underline flex items-center gap-1 break-all"
+                          onClick={(e) => {
+                            if (!url) {
+                              e.preventDefault();
+                              toast.error('File URL is not available');
+                            }
+                          }}
+                        >
+                          {url}
+                          <ExternalLink className="w-3 h-3 shrink-0" />
+                        </a>
+                      );
+                    })()}
+                  </>
+                )}
+              </div>
+
+              {/* Additional File URIs */}
+              {editedItem.file_uris && editedItem.file_uris.length > 0 && (
                 <div>
-                  <span className="text-stone-500">Item ID:</span>
-                  <p className="text-stone-800 font-mono text-xs mt-1">{editedItem.id}</p>
+                  <h3 className="text-sm font-medium text-stone-700 mb-2">
+                    Additional Files ({editedItem.file_uris.length})
+                  </h3>
+                  <div className="space-y-2">
+                    {editedItem.file_uris.map((uri, index) => {
+                      const normalizedUrl = normalizeFileUri(uri);
+                      const isGenAIUrl = normalizedUrl && normalizedUrl.includes('generativelanguage.googleapis.com');
+                      
+                      if (isGenAIUrl) {
+                        return (
+                          <div key={index} className="flex items-center gap-2 text-sm">
+                            <FileText className="w-3 h-3 shrink-0 text-stone-400" />
+                            <span className="text-stone-600">File {index + 1}</span>
+                            <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-200">
+                              API Access Only
+                            </span>
+                          </div>
+                        );
+                      }
+                      
+                      return (
+                        <a
+                          key={index}
+                          href={normalizedUrl || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-forest hover:underline flex items-center gap-1 break-all"
+                          onClick={(e) => {
+                            if (!normalizedUrl) {
+                              e.preventDefault();
+                              toast.error('File URL is not available');
+                            }
+                          }}
+                        >
+                          <FileText className="w-3 h-3 shrink-0" />
+                          {normalizedUrl ? `File ${index + 1}` : `File ${index + 1} (unavailable)`}
+                          <ExternalLink className="w-3 h-3 shrink-0" />
+                        </a>
+                      );
+                    })}
+                  </div>
                 </div>
-                <div>
-                  <span className="text-stone-500">Date Added:</span>
-                  <p className="text-stone-800 mt-1">
-                    {new Date(editedItem.date).toLocaleString('en-MY')}
-                  </p>
+              )}
+
+              {/* Tags */}
+              <div>
+                <h3 className="text-sm font-medium text-stone-700 mb-2 flex items-center gap-1">
+                  <Tag className="w-4 h-4" />
+                  Tags
+                </h3>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {editedItem.tags.map((tag) => (
+                    <Badge key={tag} variant="outline" className="text-sm">
+                      {tag}
+                      {isEditMode && (
+                        <button
+                          onClick={() => handleRemoveTag(tag)}
+                          className="ml-1 hover:text-red-600"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      )}
+                    </Badge>
+                  ))}
+                  {editedItem.tags.length === 0 && !isEditMode && (
+                    <span className="text-sm text-stone-400">No tags</span>
+                  )}
+                </div>
+                {isEditMode && (
+                  <div className="flex gap-2">
+                    <Input
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+                      placeholder="Add a tag"
+                      className="flex-1"
+                    />
+                    <Button onClick={handleAddTag} variant="outline" size="sm">
+                      Add
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              {/* Metadata */}
+              <div className="pt-6 pb-6 border-t border-stone-200">
+                <h3 className="text-sm font-medium text-stone-700 mb-2">Metadata</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-stone-500">Item ID:</span>
+                    <p className="text-stone-800 font-mono text-xs mt-1">{editedItem.id}</p>
+                  </div>
+                  <div>
+                    <span className="text-stone-500">Date Added:</span>
+                    <p className="text-stone-800 mt-1">
+                      {new Date(editedItem.date).toLocaleString('en-MY')}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

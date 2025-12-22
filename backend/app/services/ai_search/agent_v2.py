@@ -16,10 +16,13 @@ from app.core.config import settings
 from app.services.ai_search.tools import search_archives_db, read_archives_data
 
 logger = logging.getLogger(__name__)
+from datetime import datetime
+today = datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
+
 
 
 # Updated system prompt with intent classification and refinement logic
-SEARCH_AGENT_PROMPT = """You are a heritage archive search assistant with intent classification, chain-of-thought reasoning, and database access.
+SEARCH_AGENT_PROMPT = """You are a heritage archive search assistant with intent classification, chain-of-thought reasoning, and database access. Todays date and current time is {today}
 
 WORKFLOW:
 1. CLASSIFY user intent (HERITAGE_SEARCH, UNCLEAR, UNRELATED, GREETING)

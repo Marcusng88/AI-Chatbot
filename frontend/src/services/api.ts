@@ -41,14 +41,20 @@ export interface AISearchRequest {
 }
 
 export interface AISearchResponse {
-  message: string;
   archives: ArchiveResponse[];
+  total: number;
+  query: string;
+  message?: string;  // Only present when no results found
 }
 
 export interface AISearchStreamUpdate {
-  type: 'message' | 'archives' | 'final' | 'done' | 'error';
+  type: 'query_received' | 'searching' | 'results' | 'done' | 'complete' | 'error';
+  query?: string;
+  timestamp?: string;
+  thread_id?: string;
   content?: string | ArchiveResponse[];
   archives?: ArchiveResponse[];
+  total?: number;
   message?: string;
 }
 

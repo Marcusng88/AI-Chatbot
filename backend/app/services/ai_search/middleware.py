@@ -1,4 +1,10 @@
-"""Middleware for AI Search Agent - LangChain 1.0 Best Practices."""
+"""LEGACY: Middleware for AI Search Agent - NOT CURRENTLY USED.
+
+This file contains middleware implementations that were used with the old agent.py.
+The new agent_v2.py uses a simpler approach without middleware.
+
+Kept for reference only. Can be deleted if not needed.
+"""
 
 import logging
 import time

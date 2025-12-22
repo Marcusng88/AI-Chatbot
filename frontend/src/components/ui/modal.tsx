@@ -47,7 +47,7 @@ export function Modal({ isOpen, onClose, children, className }: ModalProps) {
     >
       <div
         className={cn(
-          'bg-white rounded-lg shadow-lg flex flex-col max-h-[85vh] w-full',
+          'bg-white rounded-lg shadow-lg flex flex-col max-h-[90vh] w-full min-h-0',
           className
         )}
         style={{ animation: 'slideIn 0.2s ease-out' }}
@@ -76,7 +76,7 @@ interface ModalHeaderProps {
 
 export function ModalHeader({ children, onClose, className }: ModalHeaderProps) {
   return (
-    <div className={cn('p-6 pb-4 border-b border-stone-200 flex-shrink-0', className)}>
+    <div className={cn('relative p-6 pb-4 border-b border-stone-200 flex-shrink-0', className)}>
       {children}
       {onClose && (
         <button

@@ -15,7 +15,7 @@ import { aiSearchArchives, type ArchiveResponse } from '../services/api';
 type ChatPanelProps = {
   messages: ChatMessageType[];
   setMessages: React.Dispatch<React.SetStateAction<ChatMessageType[]>>;
-  archives: ArchiveItem[];
+  archives?: ArchiveItem[];
 };
 
 type FilterState = {
@@ -25,8 +25,7 @@ type FilterState = {
   keywords: string;
 };
 
-// Archives prop kept for backward compatibility but using AI search API instead
-export function ChatPanel({ messages, setMessages }: Omit<ChatPanelProps, 'archives'> & { archives?: ArchiveItem[] }) {
+export function ChatPanel({ messages, setMessages }: ChatPanelProps) {
   const [input, setInput] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [showFilters, setShowFilters] = useState(false);
@@ -37,13 +36,23 @@ export function ChatPanel({ messages, setMessages }: Omit<ChatPanelProps, 'archi
     mediaType: 'all',
     keywords: '',
   });
-  const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  // Auto-scroll to bottom when messages or typing state changes
+  const scrollToBottom = () => {
+    const scrollViewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+    if (scrollViewport) {
+      // Use setTimeout to ensure DOM has updated
+      setTimeout(() => {
+        scrollViewport.scrollTop = scrollViewport.scrollHeight;
+      }, 100);
     }
+  };
+
+  // Scroll on messages or typing state change
+  useEffect(() => {
+    scrollToBottom();
   }, [messages, isTyping]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,13 +64,18 @@ export function ChatPanel({ messages, setMessages }: Omit<ChatPanelProps, 'archi
   };
 
   const handleSend = async () => {
-    if (!input.trim() && selectedFiles.length === 0) return;
+    const queryText = input.trim();
+    if (!queryText && selectedFiles.length === 0) return;
 
-    // Create user message
+    // IMMEDIATE: Clear input and files
+    setInput('');
+    setSelectedFiles([]);
+
+    // Create and add user message immediately
     const userMessage: ChatMessageType = {
       id: Date.now().toString(),
       role: 'user',
-      content: input || 'Uploaded files for analysis',
+      content: queryText || 'Uploaded files for analysis',
       timestamp: new Date(),
       files: selectedFiles.map((file) => ({
         name: file.name,
@@ -70,14 +84,14 @@ export function ChatPanel({ messages, setMessages }: Omit<ChatPanelProps, 'archi
       })),
     };
 
-    setMessages([...messages, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setIsTyping(true);
 
     try {
-      // Use AI agent for search
-      const result = await aiSearchArchives(input);
+      // Call backend API
+      const result = await aiSearchArchives(queryText);
       
-      // Convert API response to ArchiveItem format
+      // Convert to ArchiveItem format
       const searchResults: ArchiveItem[] = result.archives.map((archive: ArchiveResponse) => ({
         id: archive.id,
         title: archive.title,
@@ -88,19 +102,20 @@ export function ChatPanel({ messages, setMessages }: Omit<ChatPanelProps, 'archi
         fileUrl: archive.file_uris?.[0] || archive.storage_paths?.[0] || 'https://via.placeholder.com/400',
         thumbnail: archive.file_uris?.[0] || archive.storage_paths?.[0] || 'https://via.placeholder.com/400',
         file_uris: archive.file_uris || archive.storage_paths || [],
-        summary: archive.summary,
       }));
 
+      // Create assistant message with results
       const aiMessage: ChatMessageType = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: result.message,
+        content: result.message || '',  // Will be empty for results, "No matching archives found" for no results
         timestamp: new Date(),
         archiveResults: searchResults.length > 0 ? searchResults : undefined,
       };
       
-      setMessages((prev: ChatMessageType[]) => [...prev, aiMessage]);
+      setMessages((prev) => [...prev, aiMessage]);
       
+      // User feedback
       if (searchResults.length > 0) {
         toast.success(`Found ${searchResults.length} matching archive(s)`);
       } else {
@@ -110,17 +125,22 @@ export function ChatPanel({ messages, setMessages }: Omit<ChatPanelProps, 'archi
       const errorMessage: ChatMessageType = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `Sorry, I encountered an error while searching: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`,
+        content: `Sorry, search failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`,
         timestamp: new Date(),
       };
-      setMessages((prev: ChatMessageType[]) => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
       toast.error('Search failed. Please try again.');
     } finally {
       setIsTyping(false);
     }
+  };
 
-    setInput('');
-    setSelectedFiles([]);
+  // Handle Enter key
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
   };
 
   return (
@@ -149,7 +169,7 @@ export function ChatPanel({ messages, setMessages }: Omit<ChatPanelProps, 'archi
 
       {/* Messages */}
       <div className="flex-1 overflow-hidden">
-        <ScrollArea className="h-full p-4">
+        <ScrollArea className="h-full p-4" ref={scrollAreaRef}>
           <div className="space-y-4">
             <AnimatePresence>
               {messages.map((message) => (
@@ -212,14 +232,15 @@ export function ChatPanel({ messages, setMessages }: Omit<ChatPanelProps, 'archi
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+            onKeyDown={handleKeyDown}
             placeholder="Search for heritage items..."
             className="flex-1"
+            disabled={isTyping}
           />
           
           <Button
             onClick={handleSend}
-            disabled={!input.trim() && selectedFiles.length === 0}
+            disabled={(!input.trim() && selectedFiles.length === 0) || isTyping}
             className="shrink-0 bg-forest hover:bg-forest"
           >
             <Send className="w-4 h-4" />
@@ -230,6 +251,9 @@ export function ChatPanel({ messages, setMessages }: Omit<ChatPanelProps, 'archi
       {/* Quick Search Buttons - show only when no messages yet */}
       {messages.length === 1 && (
         <QuickSearchButtons onSearch={async (query) => {
+          // IMMEDIATE: Clear input and set query
+          setInput('');
+          
           // Create user message
           const userMessage: ChatMessageType = {
             id: Date.now().toString(),
@@ -238,14 +262,12 @@ export function ChatPanel({ messages, setMessages }: Omit<ChatPanelProps, 'archi
             timestamp: new Date(),
           };
 
-          setMessages([...messages, userMessage]);
+          setMessages((prev) => [...prev, userMessage]);
           setIsTyping(true);
 
           try {
-            // Use AI agent for search
             const result = await aiSearchArchives(query);
             
-            // Convert API response to ArchiveItem format
             const searchResults: ArchiveItem[] = result.archives.map((archive: ArchiveResponse) => ({
               id: archive.id,
               title: archive.title,
@@ -256,26 +278,31 @@ export function ChatPanel({ messages, setMessages }: Omit<ChatPanelProps, 'archi
               fileUrl: archive.file_uris?.[0] || archive.storage_paths?.[0] || 'https://via.placeholder.com/400',
               thumbnail: archive.file_uris?.[0] || archive.storage_paths?.[0] || 'https://via.placeholder.com/400',
               file_uris: archive.file_uris || archive.storage_paths || [],
-              summary: archive.summary,
             }));
 
             const aiMessage: ChatMessageType = {
               id: (Date.now() + 1).toString(),
               role: 'assistant',
-              content: result.message,
+              content: result.message || '',
               timestamp: new Date(),
               archiveResults: searchResults.length > 0 ? searchResults : undefined,
             };
             
-            setMessages((prev: ChatMessageType[]) => [...prev, aiMessage]);
+            setMessages((prev) => [...prev, aiMessage]);
+            
+            if (searchResults.length > 0) {
+              toast.success(`Found ${searchResults.length} matching archive(s)`);
+            } else {
+              toast.info('No matching archives found. Try different keywords.');
+            }
           } catch (error) {
             const errorMessage: ChatMessageType = {
               id: (Date.now() + 1).toString(),
               role: 'assistant',
-              content: `Sorry, I encountered an error while searching: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`,
+              content: `Sorry, search failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`,
               timestamp: new Date(),
             };
-            setMessages((prev: ChatMessageType[]) => [...prev, errorMessage]);
+            setMessages((prev) => [...prev, errorMessage]);
             toast.error('Search failed. Please try again.');
           } finally {
             setIsTyping(false);

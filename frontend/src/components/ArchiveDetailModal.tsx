@@ -4,7 +4,6 @@ import {
   Calendar,
   Tag,
   FileText,
-  Image as ImageIcon,
   Video,
   Music,
   Edit,
@@ -16,13 +15,12 @@ import {
   Loader2,
 } from 'lucide-react';
 import type { ArchiveItem } from '../App';
-import { Modal, ModalHeader, ModalBody, ModalTitle } from './ui/modal';
+import { Modal, ModalHeader, ModalTitle, ModalBody } from './ui/modal';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Badge } from './ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { ImageWithFallback } from './figma/ImageWithFallback';
 import { toast } from 'sonner';
 import { updateArchive } from '../services/api';
 
@@ -90,8 +88,6 @@ export function ArchiveDetailModal({
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'image':
-        return ImageIcon;
       case 'video':
         return Video;
       case 'audio':
@@ -232,8 +228,12 @@ export function ArchiveDetailModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} className="max-w-4xl">
-      <ModalHeader onClose={onClose}>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      className="max-w-4xl h-[90vh] min-h-0 flex flex-col overflow-hidden"
+    >
+      <ModalHeader onClose={onClose} className="sticky top-0 z-20 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/85">
         <div className="flex items-start justify-between pr-8">
           <div className="flex-1">
             <ModalTitle className="text-2xl text-stone-800">
@@ -299,83 +299,8 @@ export function ArchiveDetailModal({
         </div>
       </ModalHeader>
 
-      <ModalBody>
-        <div className="py-6 space-y-6">
-            {/* Preview/Thumbnail - show as dropdown when not editing */}
-            <div>
-              <h3 className="text-sm font-medium text-stone-700 mb-2">Preview</h3>
-              {isEditMode ? (
-                <>
-                  {editedItem.thumbnail ? (
-                    <div className="relative rounded-lg overflow-hidden border border-stone-200">
-                      <ImageWithFallback
-                        src={editedItem.thumbnail}
-                        alt={editedItem.title}
-                        className="w-full max-h-96 object-contain bg-stone-50"
-                      />
-                    </div>
-                  ) : (
-                    <div className={`w-full h-64 rounded-lg flex items-center justify-center ${getTypeColor(editedItem.type)}`}>
-                      <Icon className="w-16 h-16" />
-                    </div>
-                  )}
-                  <Input
-                    value={editedItem.thumbnail || ''}
-                    onChange={(e) => setEditedItem({ ...editedItem, thumbnail: e.target.value })}
-                    placeholder="Thumbnail URL"
-                    className="mt-2"
-                  />
-                </>
-              ) : (
-                <details className="bg-stone-50 rounded-lg overflow-hidden border border-stone-200">
-                  <summary className="flex items-center justify-between cursor-pointer p-3 text-stone-700 list-none">
-                    <span className="text-sm">View preview image</span>
-                    <ChevronDown className="w-4 h-4" />
-                  </summary>
-                  <div className="border-t border-stone-200">
-                    {editedItem.thumbnail ? (
-                      <div className="relative">
-                        <ImageWithFallback
-                          src={editedItem.thumbnail}
-                          alt={editedItem.title}
-                          className="w-full max-h-96 object-contain bg-stone-50"
-                        />
-                        {(() => {
-                          const fileUrl = normalizeFileUri(editedItem.fileUrl);
-                          const isGenAIUrl = fileUrl && fileUrl.includes('generativelanguage.googleapis.com');
-                          
-                          // Only show external link if it's not a GenAI URL
-                          if (editedItem.fileUrl && !isGenAIUrl) {
-                            return (
-                              <a
-                                href={fileUrl || '#'}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="absolute bottom-4 right-4 bg-white/90 hover:bg-white p-2 rounded-lg shadow-lg transition-all"
-                                onClick={(e) => {
-                                  if (!fileUrl) {
-                                    e.preventDefault();
-                                    toast.error('File URL is not available');
-                                  }
-                                }}
-                              >
-                                <ExternalLink className="w-4 h-4 text-stone-700" />
-                              </a>
-                            );
-                          }
-                          return null;
-                        })()}
-                      </div>
-                    ) : (
-                      <div className={`w-full h-64 flex items-center justify-center ${getTypeColor(editedItem.type)}`}>
-                        <Icon className="w-16 h-16" />
-                      </div>
-                    )}
-                  </div>
-                </details>
-              )}
-            </div>
-
+      <ModalBody className="p-0 flex-1 min-h-0 flex flex-col overflow-auto">
+        <div className="p-6 space-y-6 flex-1 min-h-0">
             {/* Description */}
             <div>
               <h3 className="text-sm font-medium text-stone-700 mb-2">Description</h3>
@@ -434,7 +359,7 @@ export function ArchiveDetailModal({
                   <SelectContent>
                     <SelectItem value="image">
                       <div className="flex items-center gap-2">
-                        <ImageIcon className="w-4 h-4" />
+                        <FileText className="w-4 h-4" />
                         Image
                       </div>
                     </SelectItem>
@@ -615,7 +540,7 @@ export function ArchiveDetailModal({
               </div>
             </div>
           </div>
-        </ModalBody>
-      </Modal>
+      </ModalBody>
+    </Modal>
   );
 }

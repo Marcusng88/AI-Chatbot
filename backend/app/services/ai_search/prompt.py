@@ -1,4 +1,10 @@
-"""System prompts for AI search agent."""
+"""LEGACY: System prompts for old AI search agent - NOT CURRENTLY USED.
+
+This file contains prompts used with the old agent.py.
+The new agent_v2.py has its own simplified prompt inline.
+
+Kept for reference only. Can be deleted if not needed.
+"""
 
 ARCHIVE_SEARCH_SYSTEM_PROMPT = """You are an intelligent archive search assistant specialized in finding cultural heritage materials.
 

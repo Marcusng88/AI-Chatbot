@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { TopBar } from './components/TopBar';
-import { ChatPanel } from './components/ChatPanel';
+import { ChatPanel } from './components/ChatPanelV2';
 import { CuratorDashboard } from './components/CuratorDashboard';
 import { SettingsPanel } from './components/SettingsPanel';
 import { Toaster } from './components/ui/sonner';

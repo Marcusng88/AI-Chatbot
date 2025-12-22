@@ -72,7 +72,9 @@ export function ChatPanel({ messages, setMessages }: ChatPanelProps) {
   const scrollToBottom = () => {
     const scrollViewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
     if (scrollViewport) {
-      // Use setTimeout to ensure DOM has updated
+      // Immediate scroll without delay for user-triggered actions
+      scrollViewport.scrollTop = scrollViewport.scrollHeight;
+      // Also schedule a delayed scroll to catch any late-rendering content
       setTimeout(() => {
         scrollViewport.scrollTop = scrollViewport.scrollHeight;
       }, 100);
@@ -115,6 +117,9 @@ export function ChatPanel({ messages, setMessages }: ChatPanelProps) {
 
     setMessages((prev) => [...prev, userMessage]);
     setIsTyping(true);
+    
+    // Scroll to bottom immediately after sending message
+    scrollToBottom();
 
     try {
       // Call backend API

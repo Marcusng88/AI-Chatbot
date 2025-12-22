@@ -22,7 +22,7 @@ import { Textarea } from './ui/textarea';
 import { Badge } from './ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { toast } from 'sonner';
-import { updateArchive } from '../services/api';
+import { updateArchive, getArchiveFileDownloadUrl } from '../services/api';
 
 // Helper function to normalize file URIs from Supabase
 const normalizeFileUri = (uri: unknown): string | undefined => {
@@ -203,27 +203,83 @@ export function ArchiveDetailModal({
     setIsEditMode(false);
   };
 
-  const handleDownload = () => {
-    const normalizedUrl = normalizeFileUri(editedItem.fileUrl);
-    
-    // Check if the URL is a GenAI URL (which requires API key)
-    if (normalizedUrl && normalizedUrl.includes('generativelanguage.googleapis.com')) {
-      toast.error('Direct download not available. This file requires API authentication.');
+  const handleDownload = async () => {
+    // If there are multiple files, download all of them
+    if (editedItem.file_uris && editedItem.file_uris.length > 1) {
+      toast.info(`Downloading ${editedItem.file_uris.length} files...`);
+      
+      for (let i = 0; i < editedItem.file_uris.length; i++) {
+        await handleDownloadFile(i);
+        // Add a small delay between downloads to avoid overwhelming the browser
+        if (i < editedItem.file_uris.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+      
+      toast.success('All files downloaded');
       return;
     }
     
-    if (normalizedUrl) {
-      // For Supabase URLs, create a download link
-      const link = document.createElement('a');
-      link.href = normalizedUrl;
-      link.download = editedItem.title || 'download';
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      toast.success('Download started...');
-    } else {
-      toast.error('File URL is not available');
+    // Single file download
+    await handleDownloadFile(0);
+  };
+
+  const handleDownloadFile = async (fileIndex: number) => {
+    try {
+      // First try to use the backend API endpoint
+      try {
+        const downloadData = await getArchiveFileDownloadUrl(editedItem.id, fileIndex);
+        if (downloadData && downloadData.url) {
+          const link = document.createElement('a');
+          link.href = downloadData.url;
+          link.download = `${editedItem.title}_file_${fileIndex + 1}`;
+          link.target = '_blank';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          if (editedItem.file_uris && editedItem.file_uris.length === 1) {
+            toast.success('Download started...');
+          }
+          return;
+        }
+      } catch (apiError) {
+        console.warn('Backend download API failed, falling back to direct URL:', apiError);
+      }
+      
+      // Fallback: use direct URL from file_uris
+      let fileUrl: string | undefined;
+      if (editedItem.file_uris && editedItem.file_uris.length > fileIndex) {
+        fileUrl = normalizeFileUri(editedItem.file_uris[fileIndex]);
+      } else {
+        fileUrl = normalizeFileUri(editedItem.fileUrl);
+      }
+      
+      // Check if the URL is a GenAI URL (which requires API key)
+      if (fileUrl && fileUrl.includes('generativelanguage.googleapis.com')) {
+        toast.error('Direct download not available. This file requires API authentication.');
+        return;
+      }
+      
+      if (fileUrl) {
+        // For Supabase URLs, create a download link
+        const link = document.createElement('a');
+        link.href = fileUrl;
+        link.download = `${editedItem.title}_file_${fileIndex + 1}`;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        if (editedItem.file_uris && editedItem.file_uris.length === 1) {
+          toast.success('Download started...');
+        }
+      } else {
+        toast.error('File URL is not available');
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error(`Failed to download file ${fileIndex + 1}`);
     }
   };
 
@@ -460,23 +516,35 @@ export function ArchiveDetailModal({
                     }
                     
                     return (
-                      <a
-                        key={index}
-                        href={normalizedUrl || '#'}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-forest hover:underline flex items-center gap-1 break-all"
-                        onClick={(e) => {
-                          if (!normalizedUrl) {
-                            e.preventDefault();
-                            toast.error('File URL is not available');
-                          }
-                        }}
-                      >
-                        <FileText className="w-3 h-3 shrink-0" />
-                        {normalizedUrl ? `File ${index + 1}` : `File ${index + 1} (unavailable)`}
-                        <ExternalLink className="w-3 h-3 shrink-0" />
-                      </a>
+                      <div key={index} className="flex items-center gap-2 text-sm">
+                        <FileText className="w-3 h-3 shrink-0 text-stone-600" />
+                        <a
+                          href={normalizedUrl || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-forest hover:underline flex items-center gap-1 break-all flex-1"
+                          onClick={(e) => {
+                            if (!normalizedUrl) {
+                              e.preventDefault();
+                              toast.error('File URL is not available');
+                            }
+                          }}
+                        >
+                          {normalizedUrl ? `File ${index + 1}` : `File ${index + 1} (unavailable)`}
+                          <ExternalLink className="w-3 h-3 shrink-0" />
+                        </a>
+                        {normalizedUrl && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDownloadFile(index)}
+                            className="h-7 px-2"
+                            title="Download this file"
+                          >
+                            <Download className="w-3 h-3" />
+                          </Button>
+                        )}
+                      </div>
                     );
                   })}
                 </div>

@@ -209,9 +209,10 @@ async def delete_archive(archive_id: str):
 @router.get("/archives/{archive_id}/download/{file_index}", status_code=200)
 async def download_archive_file(archive_id: str, file_index: int):
     """
-    Get a downloadable URL for a specific file in an archive.
+    Get a downloadable signed URL for a specific file in an archive.
     
-    This returns the Supabase storage public URL for the file.
+    This returns a signed URL that forces the browser to download the file
+    instead of displaying it. The URL is valid for 60 seconds.
     file_index: 0-based index of the file in the archive's storage_paths
     """
     try:
@@ -239,16 +240,36 @@ async def download_archive_file(archive_id: str, file_index: int):
         
         storage_path = storage_paths[file_index]
         
-        # Generate public URL
+        # Generate signed URL with download parameter to force download
         try:
-            public_url_response = supabase.storage.from_(settings.SUPABASE_STORAGE_BUCKET).get_public_url(storage_path)
-            public_url = normalize_public_url(public_url_response)
-            if not public_url:
+            # Create signed URL that expires in 60 seconds and forces download
+            signed_url_response = supabase.storage.from_(settings.SUPABASE_STORAGE_BUCKET).create_signed_url(
+                storage_path,
+                60,  # expires in 60 seconds
+                {"download": True}  # Force browser to download instead of display
+            )
+            
+            # The response can be a dict with 'signedURL' key or a string
+            if isinstance(signed_url_response, dict):
+                signed_url = signed_url_response.get('signedURL') or signed_url_response.get('signedUrl')
+            else:
+                signed_url = signed_url_response
+            
+            if not signed_url:
                 raise HTTPException(
                     status_code=500,
-                    detail="Failed to extract public URL from response"
+                    detail="Failed to create signed download URL"
                 )
-            return {"url": public_url, "storage_path": storage_path}
+            
+            # Extract filename from storage path
+            filename = storage_path.split('/')[-1]
+            
+            return {
+                "url": signed_url, 
+                "storage_path": storage_path,
+                "filename": filename,
+                "expires_in": 60
+            }
         except HTTPException:
             raise
         except Exception as e:

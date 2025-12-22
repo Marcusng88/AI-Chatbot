@@ -291,4 +291,40 @@ export async function aiSearchArchivesStream(
   }
 }
 
+/**
+ * Get a downloadable URL for a specific file in an archive
+ * 
+ * @param archiveId - The ID of the archive
+ * @param fileIndex - The index of the file in the archive's storage_paths (0-based)
+ * @returns Promise with the download URL and storage path
+ */
+export async function getArchiveFileDownloadUrl(
+  archiveId: string,
+  fileIndex: number
+): Promise<{ url: string; storage_path: string }> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/archives/${archiveId}/download/${fileIndex}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.detail || `Failed to get download URL: ${response.statusText}`
+      );
+    }
+
+    return await response.json();
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Unknown error occurred while getting download URL');
+  }
+}

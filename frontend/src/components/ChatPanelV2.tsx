@@ -1,12 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Paperclip, Filter } from 'lucide-react';
+import { Send, Paperclip } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { ScrollArea } from './ui/scroll-area';
 import type { ChatMessage as ChatMessageType, ArchiveItem } from '../App';
 import { ChatMessage } from './ChatMessage';
-import { ChatFilters } from './ChatFilters';
 import { QuickSearchButtons } from './QuickSearchButtons';
 import { TypingIndicator } from './TypingIndicator';
 import { toast } from 'sonner';
@@ -47,24 +46,10 @@ type ChatPanelProps = {
   archives?: ArchiveItem[];
 };
 
-type FilterState = {
-  dateFrom: string;
-  dateTo: string;
-  mediaType: string;
-  keywords: string;
-};
-
 export function ChatPanel({ messages, setMessages }: ChatPanelProps) {
   const [input, setInput] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [showFilters, setShowFilters] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const [filters, setFilters] = useState<FilterState>({
-    dateFrom: '',
-    dateTo: '',
-    mediaType: 'all',
-    keywords: '',
-  });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -183,26 +168,10 @@ export function ChatPanel({ messages, setMessages }: ChatPanelProps) {
   return (
     <div className="bg-white rounded-xl shadow-lg border border-stone-200 flex flex-col h-full">
       {/* Header */}
-      <div className="p-4 border-b border-stone-200 flex items-center justify-between">
-        <div>
-          <h2 className="text-stone-800">AI Heritage Search</h2>
-          <p className="text-sm text-stone-500">Ask questions about the collection</p>
-        </div>
-        <Button
-          variant={showFilters ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setShowFilters(!showFilters)}
-          className={showFilters ? 'bg-forest hover:bg-forest' : ''}
-        >
-          <Filter className="w-4 h-4 mr-2" />
-          Filters
-        </Button>
+      <div className="p-4 border-b border-stone-200">
+        <h2 className="text-stone-800">AI Heritage Search</h2>
+        <p className="text-sm text-stone-500">Ask questions about the collection</p>
       </div>
-
-      {/* Filters */}
-      {showFilters && (
-        <ChatFilters filters={filters} setFilters={setFilters} />
-      )}
 
       {/* Messages */}
       <div className="flex-1 overflow-hidden">

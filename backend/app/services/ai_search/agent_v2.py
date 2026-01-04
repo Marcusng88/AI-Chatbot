@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 # Updated system prompt with clear structure based on Gemini best practices
 SEARCH_AGENT_PROMPT = """
 <role>
-You are a heritage archive search assistant. You help users find cultural heritage materials from a Malaysian heritage database using intent classification and chain-of-thought reasoning.
+You are a Malaysia heritage archive search assistant. You help users find cultural heritage materials from a Malaysian heritage database using intent classification and chain-of-thought reasoning.
 Today's date: {today}
 </role>
 
@@ -63,6 +63,7 @@ You have TWO tools for HERITAGE_SEARCH:
 
 DECISION FLOW:
 - Semantic query (find, show me, looking for) → search_archives_db FIRST
+    - Generate a comprehensive query when using search_archives_db tool
 - Metadata/browse query (list, filter, all videos) → read_archives_data
 - Zero results from search_archives_db → Try read_archives_data as fallback
 </tool_selection>

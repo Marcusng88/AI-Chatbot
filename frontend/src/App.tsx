@@ -3,7 +3,6 @@ import { Sidebar } from './components/Sidebar';
 import { TopBar } from './components/TopBar';
 import { ChatPanel } from './components/ChatPanelV2';
 import { CuratorDashboard } from './components/CuratorDashboard';
-import { SettingsPanel } from './components/SettingsPanel';
 import { Toaster } from './components/ui/sonner';
 import { getArchives } from './services/api';
 import { toast } from 'sonner';
@@ -29,7 +28,7 @@ export type ChatMessage = {
   archiveResults?: ArchiveItem[];
 };
 
-export type ViewMode = 'chat' | 'dashboard' | 'settings';
+export type ViewMode = 'chat' | 'dashboard';
 
 const normalizeFileUri = (uri: unknown): string | undefined => {
   if (!uri) {
@@ -156,12 +155,6 @@ You can also upload files for AI-assisted tagging and metadata enrichment.`,
                 archives={archives}
                 setArchives={setArchives}
               />
-            </div>
-          )}
-
-          {currentView === 'settings' && (
-            <div className="h-full overflow-auto">
-              <SettingsPanel />
             </div>
           )}
         </main>

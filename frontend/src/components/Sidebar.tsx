@@ -1,5 +1,5 @@
 import logo from '../assets/logo.png';
-import { MessageSquare, Archive, Settings } from 'lucide-react';
+import { MessageSquare, Archive } from 'lucide-react';
 import type { ViewMode } from '../App';
 
 type SidebarProps = {
@@ -18,7 +18,6 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
   const navItems: NavItem[] = [
     { id: 'chat', icon: MessageSquare, label: 'AI Search', subtitle: 'Search archives' },
     { id: 'dashboard', icon: Archive, label: 'Dashboard', subtitle: 'Curator tools' },
-    { id: 'settings', icon: Settings, label: 'Settings', subtitle: 'Configuration' },
   ];
 
   return (

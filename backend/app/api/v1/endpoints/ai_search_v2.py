@@ -253,12 +253,14 @@ async def ai_search_stream(request: SearchRequest):
             """Generate SSE events."""
             try:
                 # IMMEDIATE: Acknowledge query received
-                yield f"data: {json.dumps({
+                # IMMEDIATE: Acknowledge query received
+                query_data = json.dumps({
                     'type': 'query_received',
                     'query': request.query,
                     'thread_id': request.thread_id,
                     'timestamp': datetime.now().isoformat()
-                })}\\n\\n"
+                })
+                yield f"data: {query_data}\n\n"
                 
                 # Stream agent results
                 all_archives: List[Dict[str, Any]] = []
@@ -312,10 +314,12 @@ async def ai_search_stream(request: SearchRequest):
                 
             except Exception as e:
                 # Error event
-                yield f"data: {json.dumps({
+                # Error event
+                error_data = json.dumps({
                     'type': 'error',
                     'message': str(e)
-                })}\\n\\n"
+                })
+                yield f"data: {error_data}\n\n"
         
         return StreamingResponse(
             event_generator(),

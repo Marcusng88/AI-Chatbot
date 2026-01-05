@@ -407,8 +407,9 @@ export function ArchiveDetailModal({
                 onValueChange={(value: 'image' | 'video' | 'document' | 'audio') =>
                   setEditedItem({ ...editedItem, type: value })
                 }
+                disabled
               >
-                <SelectTrigger>
+                <SelectTrigger className="opacity-60 cursor-not-allowed">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

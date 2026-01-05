@@ -245,11 +245,14 @@ def read_archives_data(
             "created_at, updated_at, storage_paths"
         )
         
+        # Store tag filter for post-processing (case-insensitive)
+        tag_filter = None
+        
         # Apply metadata filters if specified
         if filter_by and filter_value:
             if filter_by == "tag":
-                # Filter arrays that contain the tag
-                query = query.contains("tags", [filter_value])
+                # Store tag filter for case-insensitive post-processing
+                tag_filter = filter_value.lower()
             elif filter_by == "media_type":
                 # Filter arrays that contain the media type
                 query = query.contains("media_types", [filter_value])
@@ -273,14 +276,27 @@ def read_archives_data(
         # Apply ordering
         query = query.order(order_by, desc=order_desc)
         
-        # Apply limit
-        query = query.limit(limit)
+        # Apply limit (fetch more if we need to filter tags client-side)
+        query_limit = limit * 3 if tag_filter else limit
+        query = query.limit(query_limit)
         
         # Execute query
         logger.debug(f"Executing read-only query on archives table")
         result = query.execute()
         
         archives = result.data if result.data else []
+        
+        # Apply case-insensitive tag filter in Python if needed
+        if tag_filter and archives:
+            archives = [
+                archive for archive in archives
+                if archive.get('tags') and any(
+                    tag_filter in tag.lower() for tag in archive.get('tags', [])
+                )
+            ]
+            # Trim to requested limit after filtering
+            archives = archives[:limit]
+        
         logger.info(f"Retrieved {len(archives)} archive record(s)")
         
         # Process each archive

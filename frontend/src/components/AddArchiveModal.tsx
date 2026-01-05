@@ -326,7 +326,7 @@ export function AddArchiveModal({ isOpen, onClose, onAdd }: AddArchiveModalProps
                   variant="outline"
                   onClick={() => handleGenerateMetadata(selectedFiles)}
                   disabled={isGeneratingMetadata || selectedFiles.length === 0}
-                  className="w-full border-forest text-forest hover:bg-forest hover:text-white transition-colors"
+                  className="w-full border-forest text-forest hover:bg-forest hover:!text-white transition-colors"
                 >
                   <Sparkles className="w-4 h-4 mr-2" />
                   Generate Metadata with AI ({selectedFiles.length} file{selectedFiles.length > 1 ? 's' : ''})

@@ -849,7 +849,25 @@ Begin your analysis now."""
         """Complete archive processing pipeline."""
 
         uploaded_files, storage_paths, _ = await self.upload_files_to_genai(files)
-        file_uris = [file_obj.uri for file_obj in uploaded_files]
+        
+        # Generate Supabase public URLs instead of GenAI URIs
+        file_uris = []
+        for storage_path in storage_paths:
+            try:
+                public_url_response = self.supabase_client.storage.from_(self.storage_bucket).get_public_url(storage_path)
+                # Handle both string and dict responses
+                if isinstance(public_url_response, str):
+                    public_url = public_url_response
+                elif isinstance(public_url_response, dict):
+                    public_url = public_url_response.get('publicUrl') or public_url_response.get('publicurl') or public_url_response.get('url')
+                else:
+                    public_url = None
+                
+                if public_url:
+                    file_uris.append(public_url)
+            except Exception as e:
+                print(f"Warning: Failed to generate public URL for {storage_path}: {e}")
+                # Continue with other files
 
         summary = await self.analyze_content(
             uploaded_files=uploaded_files,

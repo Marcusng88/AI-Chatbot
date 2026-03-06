@@ -1,6 +1,6 @@
-# Badan Warisan Digital Archive - Chatbot Interface
+# BWM Heritage Archive — Frontend
 
-A professional web application for managing and searching Malaysia's National Heritage collection using AI-powered search.
+React + TypeScript frontend for the Badan Warisan Malaysia AI chatbot. Provides museum curators with a natural-language search interface and archive management tools for Malaysia's national cultural heritage collection.
 
 ## 🎯 Purpose
 
@@ -83,24 +83,40 @@ npm run dev
 
 ### Environment Setup
 
-Create a `.env` file:
+Create a `frontend/.env` file:
 
 ```env
-VITE_API_BASE_URL=http://localhost:3000/api
-VITE_UPLOAD_MAX_SIZE=10485760
-VITE_AI_MODEL=gpt-4
+# Backend API URL
+VITE_API_BASE_URL=http://localhost:8000/api/v1
 ```
+
+For production, set `VITE_API_BASE_URL` to your Render backend URL in Vercel's environment variable settings.
 
 ## 🔌 Backend Integration
 
-See `API_INTEGRATION.md` for detailed backend integration guide.
+All API calls are in `src/services/api.ts`. The backend runs on FastAPI at `VITE_API_BASE_URL`.
 
-### Key Integration Points:
+### Key Endpoints:
 
-1. **Chat API**: POST `/api/chat` - AI-powered search
-2. **Upload API**: POST `/api/upload` - File uploads with progress
-3. **Archives API**: GET/POST/DELETE `/api/archives` - CRUD operations
-4. **Search API**: POST `/api/search` - Advanced filtering
+| Endpoint | Description |
+|---|---|
+| `POST /ai-search` | Synchronous AI search — returns `AISearchResponse` |
+| `POST /ai-search/stream` | Streaming AI search via SSE — emits `AISearchStreamUpdate` events |
+| `GET /archives` | List all archives |
+| `POST /archives` | Upload files + create archive (`multipart/form-data`) |
+| `PUT /archives/{id}` | Update archive metadata |
+| `DELETE /archives/{id}` | Delete archive + storage files |
+| `POST /archives/suggest-metadata` | AI-generated metadata suggestions from uploaded files |
+
+### Response Types:
+
+```typescript
+// Search result response
+{ response_type: 'results', archives: ArchiveResponse[], total: number, query: string, message: null }
+
+// Non-heritage / greeting / vague query
+{ response_type: 'message', archives: [], total: 0, query: string, message: string }
+```
 
 ## 📱 Usage
 
@@ -124,22 +140,22 @@ See `API_INTEGRATION.md` for detailed backend integration guide.
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: React + TypeScript
-- **Styling**: Tailwind CSS v4.0
-- **UI Components**: ShadCN UI
-- **Icons**: Lucide React
-- **Animations**: Motion (Framer Motion)
-- **Notifications**: Sonner
+| Technology | Version | Purpose |
+|---|---|---|
+| React | 18.3 | UI framework |
+| TypeScript | 5.9 | Type safety |
+| Vite | 7.x | Build tool & dev server |
+| Tailwind CSS | v4.0 | Utility-first styling |
+| ShadCN UI (Radix UI) | latest | Accessible UI components |
+| Lucide React | 0.487 | Icons |
+| Motion (Framer Motion) | 12.x | Animations |
+| Sonner | 2.x | Toast notifications |
+| react-markdown | 10.x | Render markdown AI responses |
+| Recharts | 2.x | Dashboard charts |
 
-## 📊 Mock Data
+## 📊 Data & State
 
-The application includes mock data for demonstration:
-- 5 sample archive items
-- Simulated AI responses
-- Fake activity logs
-- Statistics placeholders
-
-Replace with real API calls in production.
+All archive data and AI search results are fetched live from the backend via `src/services/api.ts`. The dashboard statistics and activity log are currently placeholder data — connect them to backend analytics endpoints when available.
 
 ## 🔒 Security Notes
 

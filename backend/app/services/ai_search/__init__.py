@@ -25,9 +25,3 @@ __all__ = [
     "get_archive_search_agent",
     "search_archives_db"
 ]
-
-__all__ = [
-    "ArchiveSearchAgent",
-    "get_archive_search_agent",
-    "search_archives_db"
-]
